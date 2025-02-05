@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTurnContext } from "@/context/TurnContext";
 import { format } from "date-fns";
+import { es } from "date-fns/locale"; // Importar el locale en español
 import { CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -44,8 +45,13 @@ const fetchAvailableDates = async (): Promise<{
 };
 
 const DatePickerDemo: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [expandedDate, setExpandedDate] = useState<Date | undefined>(undefined);
+  const { turnData, updateTurnData } = useTurnContext(); // Obtener datos del contexto
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    turnData.date ? new Date(turnData.date) : undefined
+  ); // Inicializar con la fecha del contexto
+  const [expandedDate, setExpandedDate] = useState<Date | undefined>(
+    turnData.date ? new Date(turnData.date) : undefined
+  );
   const [open, setOpen] = useState(false);
   const [availablesDates, setAvailablesDates] = useState<{
     date: string;
@@ -53,13 +59,11 @@ const DatePickerDemo: React.FC = () => {
     isAvailable: boolean;
   }[]>([]);
   const [selectedBarber, setSelectedBarber] = useState<string | undefined>(
-    undefined
-  ); // Estado para el barbero
+    turnData.barber || undefined
+  ); // Inicializar con el barbero del contexto
   const [selectedTime, setSelectedTime] = useState<string | undefined>(
-    undefined
-  ); // Estado para la hora
-
-  const { updateTurnData } = useTurnContext();
+    turnData.time || undefined
+  ); // Inicializar con la hora del contexto
 
   useEffect(() => {
     const loadAvailableDates = async () => {
@@ -71,11 +75,12 @@ const DatePickerDemo: React.FC = () => {
 
   const handleDateClick = (date: Date | undefined) => {
     if (date) {
-      updateTurnData({ date: format(date, "yyyy-MM-dd") }); // Guardar fecha en el contexto
+      const formattedDate = format(date, "yyyy-MM-dd");
+      updateTurnData({ date: formattedDate }); // Guardar fecha en el contexto
+      setSelectedDate(date);
+      setExpandedDate(date);
+      setOpen(false);
     }
-    setSelectedDate(date);
-    setExpandedDate(date);
-    setOpen(false);
   };
 
   const handleBarberChange = (value: string) => {
@@ -89,10 +94,10 @@ const DatePickerDemo: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-4 md:px-0"> {/* Margen agregado */}
+    <div className="w-full max-w-md mx-auto px-4 md:px-0">
       <div className="flex flex-col space-y-1.5 mb-2">
         <Label htmlFor="peluquero">Peluquero</Label>
-        <Select onValueChange={handleBarberChange}>
+        <Select onValueChange={handleBarberChange} value={selectedBarber}>
           <SelectTrigger id="peluquero">
             <SelectValue placeholder="Seleccionar un peluquero" />
           </SelectTrigger>
@@ -117,7 +122,7 @@ const DatePickerDemo: React.FC = () => {
             >
               <CalendarIcon className="mr-2" />
               {selectedDate ? (
-                format(selectedDate, "PPP")
+                format(selectedDate, "PPP", { locale: es }) // Formato en español
               ) : (
                 <span>Selecciona una fecha</span>
               )}
@@ -129,6 +134,7 @@ const DatePickerDemo: React.FC = () => {
               selected={selectedDate}
               onSelect={handleDateClick}
               initialFocus
+              locale={es} // Calendario en español
               disabled={(date) => {
                 const dateString = format(date, "yyyy-MM-dd");
                 return !availablesDates.some(
@@ -145,7 +151,7 @@ const DatePickerDemo: React.FC = () => {
       {expandedDate && (
         <div className="mt-4">
           <Label htmlFor="horario">Horarios disponibles</Label>
-          <Select onValueChange={handleTimeSelect}>
+          <Select onValueChange={handleTimeSelect} value={selectedTime}>
             <SelectTrigger id="horario">
               <SelectValue placeholder="Seleccionar un horario" />
             </SelectTrigger>

@@ -18,12 +18,15 @@ interface FormData {
 }
 
 const TurnForm: React.FC = () => {
-    const { updateTurnData } = useTurnContext();
+    const { turnData, updateTurnData } = useTurnContext();
     const {
         register,
         watch,
         formState: { errors },
-    } = useForm<FormData>();
+        reset,
+    } = useForm<FormData>({
+        defaultValues: turnData, // Inicializa el formulario con los valores del contexto
+    });
 
     const formValues = watch();
 
@@ -34,6 +37,11 @@ const TurnForm: React.FC = () => {
 
         return () => clearTimeout(timeout);
     }, [formValues, updateTurnData]);
+
+    // Efecto para resetear el formulario cuando cambian los valores del contexto
+    useEffect(() => {
+        reset(turnData);
+    }, [turnData, reset]);
 
     return (
         <div className="w-full max-w-md mx-auto md:px-0">
