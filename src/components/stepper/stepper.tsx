@@ -4,17 +4,12 @@ import "./stepper.css"; // Incluye aquí el CSS proporcionado
 import DatePickerDemo from "../DatePickerDemo";
 import TurnForm from "../TurnForm";
 import TurnSummary from "../TurnSummary";
-import { useTurnContext } from "@/context/TurnContext";
-import { useToast } from "@/hooks/use-toast"
-
+import SucursalSelector from "../SucursalSelector";
 
 const Stepper = () => {
-  const steps = ["turno", "Datos", "Resumen ", "extra"];
+  const steps = ["Sucursal", "Horario", "Datos", "Resumen"];
   const [currentStep, setCurrentStep] = useState(1);
   const [complete, setComplete] = useState(false);
-
-  const { turnData } = useTurnContext();
-  const { toast } = useToast()
 
   const handleNext = () => {
     if (currentStep < steps.length) {
@@ -33,10 +28,12 @@ const Stepper = () => {
   const renderCurrentStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <DatePickerDemo />;
+        return <SucursalSelector />;
       case 2:
-        return <TurnForm />;
+        return <DatePickerDemo />;
       case 3:
+        return <TurnForm />;
+      case 4:
         return <TurnSummary />;
       default:
         return null;
@@ -82,7 +79,9 @@ const Stepper = () => {
       {/* Step Content */}
       <div className="mt-8 w-full max-w-lg">{renderCurrentStepContent()}</div>
 
+      {/* Botones de navegación */}
       <div className="flex justify-between mt-8 w-full max-w-lg px-4 md:px-0">
+        {/* Botón "Volver" */}
         <button
           onClick={handlePrevious}
           className={`px-6 py-2 bg-zinc-300 text-zinc-700 font-medium rounded-md transition ${currentStep === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-zinc-400"
@@ -92,46 +91,16 @@ const Stepper = () => {
           Volver
         </button>
 
-        <button
-          onClick={async () => {
-            if (currentStep === steps.length) {
-              try {
-                const response = await fetch("http://localhost:3000/api/appointments", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    ...turnData
-                  }),
-                });
-                if (response.ok) {
-                  setComplete(true);
-                  toast({
-                    title: "Turno asignado ",
-                    description: "Su turno ha sido asignado exitosamente.",
-                  });
-                } else {
-                  const error = await response.json()
-                  toast({
-                    variant: "destructive",
-                    title: "Error al asignar el turno.",
-                    description: "Hubo un problema al asignar el turno.",
-                  });
-                }
-              } catch (error) {
-                throw new Error("error")
-              }
-            } else {
-              handleNext();
-            }
-          }}
-          className="px-6 py-2 bg-zinc-900 text-white hover:bg-zinc-700 font-medium rounded-md transition"
-        >
-          {currentStep === steps.length ? "Confirmar" : "Siguiente"}
-        </button>
+        {/* Botón "Siguiente" (no aparece en el último paso) */}
+        {currentStep !== steps.length && (
+          <button
+            onClick={handleNext}
+            className="px-6 py-2 bg-zinc-900 text-white hover:bg-zinc-700 font-medium rounded-md transition"
+          >
+            Siguiente
+          </button>
+        )}
       </div>
-
     </div>
   );
 };

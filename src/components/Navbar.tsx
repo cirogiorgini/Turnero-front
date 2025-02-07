@@ -26,13 +26,13 @@ const Navbar:React.FC = () => {
         {/* Desktop Links */}
         <div className="hidden md:flex space-x-6">
           <Link
-            to="/encuentranos"
+            to="/cursos"
             className="text-zinc-50 hover:text-zinc-300 transition-colors"
           >
-            Encuéntranos
+            Cursos
           </Link>
           <Link
-            to="/turnos"
+            to="/stepper"
             className="text-zinc-50 hover:text-zinc-300 transition-colors"
           >
             Turnos
@@ -52,18 +52,18 @@ const Navbar:React.FC = () => {
       {isOpen && (
         <div className="md:hidden bg-zinc-800 rounded-md mt-2 p-4">
           <Link
-            to="/encuentranos"
-            className="block py-2 text-zinc-50 hover:text-zinc-300 transition-colors"
-            onClick={toggleMenu} // Cerrar el menú al hacer clic
-          >
-            Encuéntranos
-          </Link>
-          <Link
-            to="/turnos"
+            to="/stepper"
             className="block py-2 text-zinc-50 hover:text-zinc-300 transition-colors"
             onClick={toggleMenu} // Cerrar el menú al hacer clic
           >
             Turnos
+          </Link>
+          <Link
+            to="/cursos"
+            className="block py-2 text-zinc-50 hover:text-zinc-300 transition-colors"
+            onClick={toggleMenu} // Cerrar el menú al hacer clic
+          >
+            Cursos
           </Link>
         </div>
       )}

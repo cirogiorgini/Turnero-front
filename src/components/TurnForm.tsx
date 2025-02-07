@@ -47,7 +47,7 @@ const TurnForm: React.FC = () => {
         <div className="w-full max-w-md mx-auto md:px-0">
             <Card className="border-none shadow-none">
                 <CardHeader>
-                    <CardTitle>Datos</CardTitle>
+                <CardTitle className="text-2xl font-bold">Resumen del Turno</CardTitle>
                     <CardDescription>
                         Completa el siguiente formulario para poder solicitar el turno
                     </CardDescription>
