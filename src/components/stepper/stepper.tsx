@@ -5,6 +5,7 @@ import DatePickerDemo from "../DatePickerDemo";
 import TurnForm from "../TurnForm";
 import TurnSummary from "../TurnSummary";
 import SucursalSelector from "../SucursalSelector";
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 const Stepper = () => {
   const steps = ["Sucursal", "Horario", "Datos", "Resumen"];
@@ -41,7 +42,7 @@ const Stepper = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white text-zinc-900">
+    <div className="min-h-screen flex flex-col items-center my-4 bg-white text-zinc-900">
       {/* Stepper Container */}
       <div className="flex items-center mt-4 justify-between w-full max-w-md md:max-w-xl">
         {steps.map((step, i) => (
@@ -84,10 +85,11 @@ const Stepper = () => {
         {/* Botón "Volver" */}
         <button
           onClick={handlePrevious}
-          className={`px-6 py-2 bg-zinc-300 text-zinc-700 font-medium rounded-md transition ${currentStep === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-zinc-400"
+          className={`px-6 py-2 bg-zinc-300 text-zinc-700 font-medium rounded-md transition flex items-center gap-2 ${currentStep === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-zinc-400"
             }`}
           disabled={currentStep === 1}
         >
+          <ChevronLeft className="w-4 h-4" />
           Volver
         </button>
 
@@ -95,9 +97,10 @@ const Stepper = () => {
         {currentStep !== steps.length && (
           <button
             onClick={handleNext}
-            className="px-6 py-2 bg-zinc-900 text-white hover:bg-zinc-700 font-medium rounded-md transition"
+            className="px-6 py-2 bg-zinc-900 text-white font-medium rounded-md transition flex items-center gap-2"
           >
             Siguiente
+            <ChevronRight className="w-4 h-4" />
           </button>
         )}
       </div>

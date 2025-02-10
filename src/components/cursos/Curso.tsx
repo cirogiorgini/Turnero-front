@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import ContenidoCurso from "./ContenidoCurso";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface CursoProps {
   curso: {
@@ -25,10 +30,14 @@ const Curso: React.FC<CursoProps> = ({ curso }) => {
 
   return (
     <Card className="overflow-hidden">
-      <Avatar className="w-full h-48 rounded-none">
-        <AvatarImage src={curso.imagen} alt={curso.titulo} />
-        <AvatarFallback>{curso.titulo.charAt(0)}</AvatarFallback>
-      </Avatar>
+      {/* Imagen del curso con borde redondeado */}
+      <div className="w-full h-48 overflow-hidden rounded-t-lg">
+        <img
+          src={curso.imagen}
+          alt={curso.titulo}
+          className="w-full h-full object-cover"
+        />
+      </div>
       <CardHeader>
         <CardTitle>{curso.titulo}</CardTitle>
         <CardDescription>{curso.descripcion}</CardDescription>

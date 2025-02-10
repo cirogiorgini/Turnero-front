@@ -1,33 +1,20 @@
-import { useTurnContext } from "@/context/TurnContext";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Check, ChevronLeft, Calendar, Clock, User, Mail, Phone, Scissors, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { CheckCircle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useTurnContext } from "@/context/TurnContext";
 import { useToast } from "@/hooks/use-toast";
 
 const TurnSummary: React.FC = () => {
   const { turnData } = useTurnContext();
   const { toast } = useToast();
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
-  // Función para obtener las iniciales del nombre del barbero
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((part) => part.charAt(0))
-      .join("")
-      .toUpperCase();
-  };
-
-  // Función para confirmar el turno
-  const handleConfirmTurn = async () => {
+  const handleConfirmar = async () => {
+    setIsConfirming(true);
     try {
       const response = await fetch("http://localhost:3000/api/appointments", {
         method: "POST",
@@ -40,6 +27,7 @@ const TurnSummary: React.FC = () => {
       });
 
       if (response.ok) {
+        setIsConfirmed(true);
         toast({
           title: "Turno asignado",
           description: "Su turno ha sido asignado exitosamente.",
@@ -58,112 +46,145 @@ const TurnSummary: React.FC = () => {
         title: "Error",
         description: "Hubo un problema al conectar con el servidor.",
       });
+    } finally {
+      setIsConfirming(false);
     }
   };
 
+  const steps = [
+    { name: "Sucursal", status: "complete" },
+    { name: "Horario", status: "complete" },
+    { name: "Datos", status: "complete" },
+    { name: "Resumen", status: "current" },
+  ];
+
   return (
-    <Card className="w-full max-w-md mx-auto shadow-none border-none">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Resumen del Turno</CardTitle>
-        <CardDescription>
-          Aquí tienes un resumen de los datos ingresados para tu turno.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Sección de datos del cliente */}
-        <div className="space-y-2">
-          <Label className="text-base font-semibold">Datos del Cliente</Label>
-          <Separator />
-          <div className="flex items-baseline space-x-2">
-            <Label className="font-medium">Nombre:</Label>
-            <span
-              className={
-                turnData.clientName ? "text-muted-foreground" : "text-red-500"
-              }
-            >
-              {turnData.clientName || "No proporcionado"}
-            </span>
-          </div>
-          <div className="flex items-baseline space-x-2">
-            <Label className="font-medium">Email:</Label>
-            <span
-              className={
-                turnData.clientEmail ? "text-muted-foreground" : "text-red-500"
-              }
-            >
-              {turnData.clientEmail || "No proporcionado"}
-            </span>
-          </div>
-          <div className="flex items-baseline space-x-2">
-            <Label className="font-medium">Teléfono:</Label>
-            <span
-              className={
-                turnData.clientPhone ? "text-muted-foreground" : "text-red-500"
-              }
-            >
-              {turnData.clientPhone || "No proporcionado"}
-            </span>
-          </div>
-        </div>
-
-        {/* Sección de detalles del turno */}
-        <div className="space-y-2">
-          <Label className="text-base font-semibold">Detalles del Turno</Label>
-          <Separator />
-          <div className="flex items-baseline space-x-2">
-            <Label className="font-medium">Fecha:</Label>
-            <span
-              className={
-                turnData.date ? "text-muted-foreground" : "text-red-500"
-              }
-            >
-              {turnData.date || "No seleccionada"}
-            </span>
-          </div>
-          <div className="flex items-baseline space-x-2">
-            <Label className="font-medium">Hora:</Label>
-            <span
-              className={
-                turnData.time ? "text-muted-foreground" : "text-red-500"
-              }
-            >
-              {turnData.time || "No seleccionada"}
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Label className="font-medium">Barbero:</Label>
-            <div className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={`/images/barberos/${turnData.barber}.jpg`} // Ruta de la imagen del barbero
-                  alt={turnData.barber}
-                />
-                <AvatarFallback>
-                  {turnData.barber ? getInitials(turnData.barber) : "N/A"}
-                </AvatarFallback>
-              </Avatar>
-              <span
-                className={
-                  turnData.barber ? "text-muted-foreground" : "text-red-500"
-                }
+    <div className="max-w-2xl mx-auto p-6">
+      {/* Barra de progreso */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between relative">
+          {steps.map((step, stepIdx) => (
+            <div key={step.name} className="flex flex-col items-center">
+              <motion.div
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium
+                  ${
+                    step.status === "complete"
+                      ? "bg-green-600 text-white"
+                      : step.status === "current"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
+                  }`}
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.2 }}
               >
-                {turnData.barber || "No seleccionado"}
-              </span>
+                {step.status === "complete" ? <Check className="w-5 h-5" /> : stepIdx + 1}
+              </motion.div>
+              <span className="text-sm font-medium mt-2">{step.name}</span>
             </div>
+          ))}
+          {/* Línea de progreso */}
+          <div className="absolute top-5 left-0 w-full h-[2px] bg-muted -z-10">
+            <div className="w-[75%] h-full bg-green-600" />
           </div>
         </div>
+      </div>
 
-        {/* Botón de confirmación */}
-        <Button
-          className="w-full mt-6"
-          variant="default"
-          onClick={handleConfirmTurn}
-        >
-          <CheckCircle className="mr-2 h-4 w-4" />
-          Confirmar Turno
-        </Button>
-      </CardContent>
-    </Card>
+      {isConfirmed ? (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <Alert className="bg-green-50 border-green-200">
+            <Check className="h-5 w-5 text-green-600" />
+            <AlertTitle className="text-green-800">¡Turno confirmado!</AlertTitle>
+            <AlertDescription className="text-green-700">
+              Te hemos enviado un email con los detalles de tu turno.
+            </AlertDescription>
+          </Alert>
+        </motion.div>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Resumen del Turno</CardTitle>
+            <CardDescription>Aquí tienes un resumen de los datos ingresados para tu turno</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Datos del Cliente */}
+            <div>
+              <h3 className="font-semibold text-lg mb-4">Datos del Cliente</h3>
+              <div className="grid gap-4">
+                <div className="flex items-center gap-3">
+                  <User className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Nombre:</p>
+                    <p className="font-medium">{turnData.clientName || "No proporcionado"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email:</p>
+                    <p className="font-medium">{turnData.clientEmail || "No proporcionado"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Teléfono:</p>
+                    <p className="font-medium">{turnData.clientPhone || "No proporcionado"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Detalles del Turno */}
+            <div>
+              <h3 className="font-semibold text-lg mb-4">Detalles del Turno</h3>
+              <div className="grid gap-4">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Fecha:</p>
+                    <p className="font-medium">{turnData.date || "No seleccionada"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Hora:</p>
+                    <p className="font-medium">{turnData.time || "No seleccionada"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Scissors className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Barbero:</p>
+                    <p className="font-medium">{turnData.barber || "No seleccionado"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between pt-6">
+              <Button variant="outline" className="flex items-center gap-2">
+                <ChevronLeft className="w-4 h-4" /> Volver
+              </Button>
+              <Button onClick={handleConfirmar} disabled={isConfirming} className="flex items-center gap-2">
+                {isConfirming ? (
+                  <>
+                    <LoaderCircle className="w-4 h-4 animate-spin" />
+                    Confirmando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Confirmar Turno
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 
