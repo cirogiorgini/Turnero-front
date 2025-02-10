@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion"
-import { MapPin, Clock, Users, ChevronLeft, ChevronRight } from "lucide-react"
+import { MapPin, Clock, Users } from "lucide-react"
 
 interface Sucursal {
   id: string
