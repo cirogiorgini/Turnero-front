@@ -60,36 +60,6 @@ const TurnSummary: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      {/* Barra de progreso */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between relative">
-          {steps.map((step, stepIdx) => (
-            <div key={step.name} className="flex flex-col items-center">
-              <motion.div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium
-                  ${
-                    step.status === "complete"
-                      ? "bg-green-600 text-white"
-                      : step.status === "current"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
-                  }`}
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.2 }}
-              >
-                {step.status === "complete" ? <Check className="w-5 h-5" /> : stepIdx + 1}
-              </motion.div>
-              <span className="text-sm font-medium mt-2">{step.name}</span>
-            </div>
-          ))}
-          {/* Línea de progreso */}
-          <div className="absolute top-5 left-0 w-full h-[2px] bg-muted -z-10">
-            <div className="w-[75%] h-full bg-green-600" />
-          </div>
-        </div>
-      </div>
-
       {isConfirmed ? (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Alert className="bg-green-50 border-green-200">
@@ -163,10 +133,7 @@ const TurnSummary: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-between pt-6">
-              <Button variant="outline" className="flex items-center gap-2">
-                <ChevronLeft className="w-4 h-4" /> Volver
-              </Button>
+            <div className="flex justify-center pt-6">
               <Button onClick={handleConfirmar} disabled={isConfirming} className="flex items-center gap-2">
                 {isConfirming ? (
                   <>
