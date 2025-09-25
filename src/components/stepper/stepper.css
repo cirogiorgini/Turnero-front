@@ -1,29 +1,26 @@
-.step-item {
-    @apply relative flex flex-col justify-center items-center w-36;
-  }
-  
-  .step-item:not(:first-child):before {
-    @apply content-[''] bg-zinc-200 absolute w-full h-[3px] right-2/4 top-1/3 -translate-y-2/4;
-  }
-  
-  .step {
-    @apply w-10 h-10 flex items-center justify-center z-10 relative bg-zinc-900 rounded-full font-semibold text-white;
-  }
-  
-  .active .step {
-    @apply bg-zinc-900 text-white;
-  }
-  
-  .complete .step {
-    @apply bg-green-600 text-white;
-  }
-  
-  .complete p {
-    @apply text-green-600;
-  }
-  
-  .complete:not(:first-child):before,
-  .active:not(:first-child):before {
-    @apply bg-green-600;
-  }
-  
+/* Contenedor principal */
+.stepper-container {
+  width: 100%;
+  max-width: 600px; /* Ancho máximo para pantallas grandes */
+  margin: 0 auto; /* Centrar en la pantalla */
+  padding: 1rem;
+}
+
+/* Barra de progreso */
+.progress-bar-container {
+  width: 100%;
+  background-color: #e5e7eb; /* Fondo gris */
+  border-radius: 9999px; /* Bordes redondeados */
+  height: 0.5rem; /* Altura de la barra */
+  overflow: hidden; /* Evitar que el contenido se desborde */
+  position: relative;
+}
+
+/* Barra de progreso (relleno) */
+.progress-bar {
+  background-color: #1f2937; /* Fondo negro */
+  border-radius: 9999px; /* Bordes redondeados */
+  height: 100%; /* Altura de la barra */
+  width: 0; /* Inicialmente sin ancho */
+  transition: width 0.5s ease-in-out; /* Transición suave */
+}

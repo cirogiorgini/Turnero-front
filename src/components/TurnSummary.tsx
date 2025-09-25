@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Calendar, Clock, User, Mail, Phone, Scissors, LoaderCircle } from "lucide-react";
+import { Check, Calendar, Clock, Scissors, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -8,13 +8,14 @@ import { useTurnContext } from "@/context/TurnContext";
 import { useToast } from "@/hooks/use-toast";
 
 const TurnSummary: React.FC = () => {
-  const { turnData } = useTurnContext();
+  const { turnData, user } = useTurnContext();
   const { toast } = useToast();
   const [isConfirming, setIsConfirming] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
   const handleConfirmar = async () => {
     setIsConfirming(true);
+    console.log(user)
     try {
       const response = await fetch("http://localhost:3000/api/appointments", {
         method: "POST",
@@ -22,7 +23,13 @@ const TurnSummary: React.FC = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...turnData,
+          clientName: user?.fullName,
+          clientEmail: user?.email,
+          clientPhone: user?.phone,
+          barber: turnData.barber,
+          branch: turnData.sucursal?.id,
+          date: turnData.date,
+          time: turnData.time
         }),
       });
 
@@ -64,40 +71,12 @@ const TurnSummary: React.FC = () => {
           </Alert>
         </motion.div>
       ) : (
-        <Card>
+        <Card className="border-none w-[100%]">
           <CardHeader>
             <CardTitle className="text-2xl">Resumen del Turno</CardTitle>
             <CardDescription>Aquí tienes un resumen de los datos ingresados para tu turno</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Datos del Cliente */}
-            <div>
-              <h3 className="font-semibold text-lg mb-4">Datos del Cliente</h3>
-              <div className="grid gap-4">
-                <div className="flex items-center gap-3">
-                  <User className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Nombre:</p>
-                    <p className="font-medium">{turnData.clientName || "No proporcionado"}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email:</p>
-                    <p className="font-medium">{turnData.clientEmail || "No proporcionado"}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Teléfono:</p>
-                    <p className="font-medium">{turnData.clientPhone || "No proporcionado"}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Detalles del Turno */}
             <div>
               <h3 className="font-semibold text-lg mb-4">Detalles del Turno</h3>

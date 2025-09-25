@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTurnContext } from "@/context/TurnContext";
-import { format } from "date-fns";
-import { es } from "date-fns/locale"; // Importar el locale en español
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -15,173 +15,173 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 
-const fetchAvailableDates = async (): Promise<{
-  freeSlots: string[];
-  date: string;
-  isAvailable: boolean;
-}[]> => {
+// Función para obtener los barberos de una sucursal
+const fetchBarbers = async (token: string, sucursal: string) => {
   try {
-    const response = await fetch("http://localhost:3000/api/appointments/available");
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
+    const response = await fetch(`http://localhost:3000/admin/branches/${sucursal}/barbers`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error(`Error: ${response.status} ${response.statusText}`);
     const data = await response.json();
-    return data.availableAppointments.map(
-      (appointment: { date: string; freeSlots: string[] }) => ({
-        date: appointment.date,
-        freeSlots: appointment.freeSlots,
-        isAvailable: appointment.freeSlots.length > 0,
-      })
-    );
+    return data.barbers;
   } catch (error) {
-    console.error("Error fetching available dates:", error);
+    console.error("Error fetching barbers:", error);
+    return [];
+  }
+};
+
+// Función para obtener turnos disponibles de un barbero
+const fetchAppointmentsByBarber = async (barberId: string) => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/appointments/barber/${barberId}`);
+    if (!response.ok) throw new Error(`Error: ${response.status} ${response.statusText}`);
+    const data = await response.json();
+
+    return data.availableAppointments.map((appointment: any) => ({
+      id: appointment._id,
+      date: parseISO(appointment.date),
+      time: appointment.time,
+      isAvailable: appointment.isAvailable,
+    }));
+  } catch (error) {
+    console.error("Error fetching appointments by barber:", error);
     return [];
   }
 };
 
 const DatePickerDemo: React.FC = () => {
-  const { turnData, updateTurnData } = useTurnContext(); // Obtener datos del contexto
+  const { turnData, updateTurnData, user } = useTurnContext();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     turnData.date ? new Date(turnData.date) : undefined
-  ); // Inicializar con la fecha del contexto
-  const [expandedDate, setExpandedDate] = useState<Date | undefined>(
-    turnData.date ? new Date(turnData.date) : undefined
   );
+  const [availableAppointments, setAvailableAppointments] = useState<
+    { id: string; date: Date; time: string; isAvailable: boolean }[]
+  >([]);
+  const [barbers, setBarbers] = useState<{ _id: string; fullName: string }[]>([]);
+  const [selectedBarber, setSelectedBarber] = useState<string | undefined>(turnData.barber || undefined);
+  const [selectedTime, setSelectedTime] = useState<string | undefined>(turnData.time || undefined);
   const [open, setOpen] = useState(false);
-  const [availablesDates, setAvailablesDates] = useState<{
-    date: string;
-    freeSlots: string[];
-    isAvailable: boolean;
-  }[]>([]);
-  const [selectedBarber, setSelectedBarber] = useState<string | undefined>(
-    turnData.barber || undefined
-  ); // Inicializar con el barbero del contexto
-  const [selectedTime, setSelectedTime] = useState<string | undefined>(
-    turnData.time || undefined
-  ); // Inicializar con la hora del contexto
 
+  // Cargar barberos al montar el componente
   useEffect(() => {
-    const loadAvailableDates = async () => {
-      const dates = await fetchAvailableDates();
-      setAvailablesDates(dates);
+    const loadBarbers = async () => {
+      if (user?.token && turnData?.sucursal) {
+        const barbersData = await fetchBarbers(user.token, turnData.sucursal.id);
+        setBarbers(barbersData);
+      }
     };
-    loadAvailableDates();
-  }, []);
 
-  const handleDateClick = (date: Date | undefined) => {
-    if (date) {
-      const formattedDate = format(date, "yyyy-MM-dd");
-      updateTurnData({ date: formattedDate }); // Guardar fecha en el contexto
-      setSelectedDate(date);
-      setExpandedDate(date);
-      setOpen(false);
-    }
-  };
+    loadBarbers();
+  }, [user, turnData.sucursal]);
 
+  // Cargar turnos cuando se seleccione un barbero
+  useEffect(() => {
+    const loadAppointmentsByBarber = async () => {
+      if (selectedBarber) {
+        const appointments = await fetchAppointmentsByBarber(selectedBarber);
+        setAvailableAppointments(appointments);
+      }
+    };
+
+    loadAppointmentsByBarber();
+  }, [selectedBarber]);
+
+  // Cambiar barbero seleccionado
   const handleBarberChange = (value: string) => {
     setSelectedBarber(value);
-    updateTurnData({ barber: value }); // Guardar barbero en el contexto
+    setSelectedDate(undefined); // Resetear fecha al cambiar de barbero
+    setSelectedTime(undefined); // Resetear horario al cambiar de barbero
+    updateTurnData({ barber: value, date: undefined, time: undefined });
   };
 
+  // Manejar la selección de una fecha
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    updateTurnData({ date: date?.toISOString() });
+    setSelectedTime(undefined); // Resetear horario al cambiar la fecha
+  };
+
+  // Manejar la selección de un horario
   const handleTimeSelect = (value: string) => {
     setSelectedTime(value);
-    updateTurnData({ time: value }); // Guardar hora en el contexto
+    updateTurnData({ time: value });
   };
 
   return (
     <div className="w-full max-w-md mx-auto px-4 md:px-0">
+      {/* Selector de barbero */}
       <div className="flex flex-col space-y-1.5 mb-2">
         <Label htmlFor="peluquero">Peluquero</Label>
-        <Select onValueChange={handleBarberChange} value={selectedBarber}>
-          <SelectTrigger id="peluquero">
-            <SelectValue placeholder="Seleccionar un peluquero" />
+        <Select value={selectedBarber} onValueChange={handleBarberChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Seleccionar peluquero" />
           </SelectTrigger>
-          <SelectContent position="popper">
-            <SelectItem value="matias">Matias</SelectItem>
-            <SelectItem value="joaquin">Joaquin</SelectItem>
-            <SelectItem value="facundo">Facundo</SelectItem>
+          <SelectContent>
+            <SelectGroup>
+              {barbers.map((barber) => (
+                <SelectItem key={barber._id} value={barber._id}>
+                  {barber.fullName}
+                </SelectItem>
+              ))}
+            </SelectGroup>
           </SelectContent>
         </Select>
       </div>
 
+      {/* Selector de fecha */}
       <div className="mt-4">
         <Label htmlFor="diasDisponibles">Días disponibles</Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
-              variant={"outline"}
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !selectedDate && "text-muted-foreground"
-              )}
+              variant="outline"
+              className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
             >
               <CalendarIcon className="mr-2" />
-              {selectedDate ? (
-                format(selectedDate, "PPP", { locale: es }) // Formato en español
-              ) : (
-                <span>Selecciona una fecha</span>
-              )}
+              {selectedDate ? format(selectedDate, "PPP", { locale: es }) : <span>Selecciona una fecha</span>}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={selectedDate}
-              onSelect={handleDateClick}
+              onSelect={handleDateSelect}
               initialFocus
-              locale={es} // Calendario en español
-              disabled={(date) => {
-                const dateString = format(date, "yyyy-MM-dd");
-                return !availablesDates.some(
-                  (availableDate) =>
-                    availableDate.date === dateString &&
-                    availableDate.isAvailable
-                );
-              }}
+              locale={es}
+              disabled={(date) =>
+                !availableAppointments.some(
+                  (appointment) => format(appointment.date, "yyyy-MM-dd") === format(date, "yyyy-MM-dd") && appointment.isAvailable
+                )
+              }
             />
           </PopoverContent>
         </Popover>
       </div>
 
-      {expandedDate && (
+      {/* Selector de horario */}
+      {selectedDate && (
         <div className="mt-4">
           <Label htmlFor="horario">Horarios disponibles</Label>
-          <Select onValueChange={handleTimeSelect} value={selectedTime}>
+          <Select value={selectedTime} onValueChange={handleTimeSelect}>
             <SelectTrigger id="horario">
-              <SelectValue placeholder="Seleccionar un horario" />
+              <SelectValue placeholder="Seleccionar horario" />
             </SelectTrigger>
-            <SelectContent position="popper">
-              {Array.from({ length: 10 }).map((_, index) => {
-                const hour = 9 + index;
-                const slot = `${hour.toString().padStart(2, "0")}:00`;
-                const isAvailable = availablesDates
-                  .filter(
-                    (date) =>
-                      date.date === format(expandedDate, "yyyy-MM-dd")
-                  )
-                  .some((date) => date.freeSlots.includes(slot));
-                const formattedSlot = `${hour % 12 || 12}:00 ${
-                  hour >= 12 ? "PM" : "AM"
-                }`;
-
-                return (
-                  <SelectItem
-                    key={slot}
-                    value={slot}
-                    className={cn(
-                      !isAvailable && "text-gray-400 cursor-not-allowed"
-                    )}
-                    disabled={!isAvailable}
-                  >
-                    {formattedSlot}
+            <SelectContent>
+              {availableAppointments
+                .filter(
+                  (appointment) => format(appointment.date, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd")
+                )
+                .map((appointment) => (
+                  <SelectItem key={appointment.id} value={appointment.time}>
+                    {appointment.time}
                   </SelectItem>
-                );
-              })}
+                ))}
             </SelectContent>
           </Select>
         </div>
