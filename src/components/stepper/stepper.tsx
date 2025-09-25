@@ -10,6 +10,7 @@ const Stepper = () => {
   const steps = ["Sucursal", "Horario", "Resumen"];
   const [currentStep, setCurrentStep] = useState(1);
   const [complete, setComplete] = useState(false);
+  console.log(complete)
 
   const handleNext = () => {
     if (currentStep < steps.length) {

@@ -14,7 +14,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Mail, Phone, User, Plus, ArrowLeft, Trash2 } from "lucide-react";
+import { Loader2, Mail, Phone, User, ArrowLeft, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Barber {

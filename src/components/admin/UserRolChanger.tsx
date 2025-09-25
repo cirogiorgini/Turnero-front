@@ -35,7 +35,7 @@ const UserManagement = () => {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-
+    console.log(users)
     setIsSearching(true);
     try {
       const response = await fetch(`http://localhost:3000/api/users?email=${searchQuery}`, {
