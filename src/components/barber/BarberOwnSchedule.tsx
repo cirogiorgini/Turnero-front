@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { format, parseISO, isSameDay, startOfWeek, endOfWeek } from "date-fns";
+import { format, parseISO, startOfWeek, endOfWeek } from "date-fns";
 import { es } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTurnContext } from "@/context/TurnContext";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Calendar, Filter, Copy, Check, Scissors, Clock } from "lucide-react";
+import { Loader2, Calendar, Copy, Check, Scissors, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Select,
